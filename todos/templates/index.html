@@ -8,6 +8,11 @@
         .hidden {
             display: none;
         }
+       ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
     </style>
 </head>
         <body>
@@ -18,10 +23,28 @@
             <div id="error" class="hidden">Something went wrong!</div>
             <ul id="todos">
                 {% for d in data %}
-                <li>{{ d.description }}</li>
-                {% endfor %}
+                <li><input class = "check-completed" data-id="{{ d.id }}" type="checkbox" {% if d.completed %} checked {% endif %}>{{ d.description }}</li>
+                {% endfor %}</li>
             </ul>
             <script>
+                const checkboxes = document.querySelectorAll('.check-completed');
+                for (let i = 0; i < checkboxes.length; i++) {
+                    const checkbox = checkboxes[i];
+                    checkbox.onchange = function(e) {
+                        console.log('event', e);
+                        const newCompleted = e.target.checked;
+                        fetch('/todos/'  + todoId + 'set-completed', {
+                            method: 'POST',
+                            body: JSON.stringify({
+                                'completed': newCompleted
+                            }),
+                            headers: {
+                                'content-type':  'application/json'
+                            }
+                        })
+                            
+                    }
+                }
                 document.getElementById('form').onsubmit = function (e) {
                     e.preventDefault();
                     fetch('/todos/create', {
@@ -38,7 +61,7 @@
                         })
                         .then(function (jsonResponse) {
                             console.log(jsonResponse);
-                            const liItem = document.createElement('LI');
+                            const liItem = document.createElement('li');
                             liItem.innerHTML = jsonResponse['description'];
                             document.getElementById('todos').appendChild(liItem);
                             document.getElementById('error').className = 'hidden';
